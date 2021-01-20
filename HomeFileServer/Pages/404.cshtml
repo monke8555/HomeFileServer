@@ -1,0 +1,18 @@
+﻿@page
+@using ExaminerApp.Pages
+@model _404Model
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Error - Page not found";
+}
+    <p class="text-left x-large">
+        Hmm, the page you requested doesn't exist. <br>
+        It may have run away. (They usually do!) <br />
+        Maybe try one of these links?
+    </p>
+    <br>
+    <ul class="text-left larger list-unstyled">
+        <li><a href="/">Home</a></li>
+        <li><a href="">Login</a></li>
+        <li><a href="/Privacy">Privacy</a></li>
+    </ul>

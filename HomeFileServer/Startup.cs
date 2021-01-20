@@ -32,6 +32,14 @@ namespace HomeFileServer {
 				app.UseHsts();
 			}
 
+			app.Use(async (context, next) => {
+				await next();
+				if (context.Response.StatusCode == 404) {
+					context.Request.Path = "/404";
+					await next();
+				}
+			});
+
 			app.UseHttpsRedirection();
 			app.UseStaticFiles();
 

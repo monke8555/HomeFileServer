@@ -1,4 +1,11 @@
-﻿<!DOCTYPE html>
+﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Xsrf
+@functions{
+    public string GetAntiXsrfRequestToken()
+    {
+        return Xsrf.GetAndStoreTokens(Context).RequestToken;
+    }
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -6,8 +13,9 @@
     <title>@ViewData["Title"] - HomeFileServer</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/lib/w3/w3.css" />
 </head>
-<body>
+<body id="body">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
@@ -16,7 +24,7 @@
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
@@ -37,14 +45,127 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2021 - HomeFileServer - <a asp-area="" asp-page="/Privacy">Privacy</a>
+            &copy; 2020 - HomeFileServer - <a asp-area="" asp-page="/Privacy">Privacy</a>
         </div>
     </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="~/lib/w3/w3.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    @{
+        @RenderSection("Scripts", required: false)
+        if (Context.Request.Cookies["cookieDialogShown"] != "true")
+        {
+            <div class="w3-container">
+                <div id="consentContainer" style="display:block;" class="w3-modal w3-animate-opacity">
+                    <div style="background-color:#0874e9;color:white;" class="w3-round-large w3-modal-content w3-card-4">
+                        <header class="larger w3-container">
+                            <h2>Cookie Consent</h2>
+                        </header>
+                        <br />
+                        <div class="w3-container">
+                            <b>Do you like cookies? &#127850;</b> We use cookies to ensure you get the best experience on our website. <br />
+                            By continuing to browse you agree to the usage of cookies. <br /> <br />
+                            <button id="cookieAgree" type="button" class="large btn btn-primary btn-sm" aria-label="Close">
+                                Got it
+                            </button>
+                        </div>
+                        <br />
+                        <footer class="small w3-container">
+                            <p>
+                                <a href="http://cookiesandyou.com/" target="_blank">Learn more</a>
+                                <a asp-page="/Privacy">Privacy Policy</a>
+                                <a class="showCookieInfo">Cookie Info</a>
+                            </p>
+                        </footer>
+                    </div>
+                </div>
+                <div class="w3-container">
 
-    @await RenderSectionAsync("Scripts", required: false)
+                    <div id="cookieInfo" class="w3-modal">
+                        <div class="w3-modal-content w3-card-4 w3-animate-opacity">
+                            <header class="w3-container w3-blue">
+                                <span class="closeCookieInfo w3-button w3-blue w3-xlarge w3-display-topright">&times;</span>
+                                <h2>Cookie Information</h2>
+                            </header>
+
+                            <div class="w3-bar w3-border-bottom">
+                                <button class="tablink w3-bar-item w3-button" onclick="openTab(event, 'Default')">Default</button>
+                                <button class="tablink w3-bar-item w3-button" onclick="openTab(event, 'Local')">Local</button>
+                                <button class="tablink w3-bar-item w3-button" onclick="openTab(event, 'External')">External</button>
+                            </div>
+
+                            <div id="Default" class="w3-container tab">
+                                <h1>Default</h1>
+                                <p>
+                                    There is currently one default cookie: <br />
+                                    <code>.AspNetCore.Antiforgery.xxxxxxx</code> <br />
+                                    It is used to prevent Cross-Site Request Forgery <br />
+                                    <a href="https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-5.0">More on that here</a>
+                                </p>
+                            </div>
+                            <br />
+
+                            <div id="Local" class="w3-container tab">
+                                <h1>Local</h1>
+                                The local cookies include: <br />
+                                1) <code>cookieDialogShown</code>: Holds true or false depending on whether or not you've clicked "Got It" in the cookie consent, so that it doesnt show it every time you open this website <br />
+                                2) <code>loggedIn</code>: Holds true or false depending on whether or not you've logged in <br />
+                                3) <code>usernameHash</code>: Holds a hash of the username you logged in with <br />
+                                4) <code>passwordHash</code>: Holds a hash of the password you logged in with
+                            </div>
+                            <br />
+
+                            <div id="External" class="w3-container tab">
+                                <h1>External</h1>
+                                There are currently no external cookies
+                            </div>
+                            <br />
+
+                            <div class="w3-container w3-light-grey w3-padding">
+                                <button class="closeCookieInfo w3-button w3-right w3-white w3-border">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script>
+                document.getElementsByClassName("tablink")[0].click();
+                $(".showCookieInfo").click(function () {
+                    $("#cookieInfo").css("display", "block");
+                });
+                $(".closeCookieInfo").click(function () {
+                    $("#cookieInfo").css("display", "none");
+                });
+                $("#cookieAgree").click(function () {
+                    document.getElementById('consentContainer').style.display = 'none'
+                    $.ajax({
+                        type: 'POST',
+                        url: '/Server/Cookies',
+                        headers:
+                        {
+                            "RequestVerificationToken": '@GetAntiXsrfRequestToken()'
+                        },
+                        data: {
+                            type: "set",
+                            name: "cookieDialogShown",
+                            value: "true",
+                            path: "/",
+                            @{
+                                var expires = DateTime.Now.AddDays(30);
+                            }
+                            expires: "@expires"
+                        },
+                        success: function (data) {
+                            console.log("Success. Cookie prompt will not be shown for 30 days.");
+                        }
+                    });
+                });
+            </script>
+        }
+    }
 </body>
 </html>
